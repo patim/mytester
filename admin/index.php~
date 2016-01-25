@@ -1,0 +1,96 @@
+<?php 
+	session_start();
+	$ths =  $_SERVER[ 'PHP_SELF' ];	
+
+	$redirectLoginSuccess = "main.php";
+	$redirectLoginFailed =  $ths;
+			
+	require_once('../Connections/trainer.php');
+	
+	if( isset($_SESSION['Username']) ) {
+		$query = "SELECT id_user, rights FROM user WHERE name='". $_SESSION['Username']."'";
+		$u = mysql_query($query, $trainer) or die(mysql_error());
+		$u_row = mysql_fetch_assoc($u);
+		if($u_row['rights'] == 'admin') {
+	  		echo "<HTML><HEAD>	<META HTTP-EQUIV='Refresh' CONTENT='0; URL= ". $redirectLoginSuccess."'></HEAD></HTML>";
+			exit;
+		}
+	}
+	
+	if( isset($_POST['Enter']) or isset($_POST['name']) or isset($_POST['pass'])) {
+		$name = $_POST['name'];
+		$password =$_POST['pass'];
+
+		$query = "SELECT * FROM user WHERE name='".$name."' AND password='".$password."' AND rights='admin'";
+		$login =  mysql_query($query,  $trainer) or die(mysql_error());
+		$loginFoundUser = mysql_num_rows($login);
+		if ($loginFoundUser) {
+			$row_login = mysql_fetch_assoc($login);
+			$_SESSION['Username'] = $name;
+			$_SESSION['Userrights'] = $row_login['rights'];
+	  		echo "<HTML><HEAD>	<META HTTP-EQUIV='Refresh' CONTENT='0; URL= ". $redirectLoginSuccess."'></HEAD></HTML>";
+			exit;
+		}
+		else  {
+	  		$_SESSION['failed'] = 1;
+	  		echo "<HTML><HEAD>	<META HTTP-EQUIV='Refresh' CONTENT='0; URL= ".$redirectLoginFailed."'></HEAD></HTML>";
+			exit;
+		}
+	}
+	//echo $_SESSION['Username'];
+?>
+<HTML>
+<HEAD>
+<TITLE>Вход в администрирование</TITLE>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<link href="../styles.css" rel="stylesheet" type="text/css">
+</HEAD>
+<BODY>
+<br>
+<br>
+<br>
+<div align=center class="rowtxt">
+  <?php 
+  		if(isset($_SESSION['failed'])) {
+  			unset($_SESSION['failed']);						
+			echo "Неверный логин (пароль) или у Вас не достаточно прав"; 
+		}
+		else echo "&nbsp;";
+	
+	?>
+  </div>
+<br>
+<center>
+  <table width=233 border=0>
+    <!--DWLayoutTable-->
+    <tr> 
+      <td width=227 height=25 align=center valign="top" bgcolor = #336699 class="captauth"> 
+        вход </td>
+      </tr>
+  </table>
+  <FORM action= "<?php echo $ths;?>" method = "post" name="log_in" id="log_in">
+    <table width=231 border=0 >
+      <!--DWLayoutTable-->
+      <tr> 
+        <td width="53" height="24" align="center" valign="middle" class="reg"> 
+          Имя </td>
+        <td width="168" valign="top"> <input name="name" type="text" class="editbt2"  id="name" size = "30" maxlength="30"> 
+        </td>
+      </tr>
+      <tr> 
+        <td height="24" class="reg"> Пароль </td>
+        <td valign="top"> <input name= "pass" type="password" class="editbt2" id="pass" size= "30"  maxlength="30"> 
+        </td>
+        </tr>
+    </table>
+    <table width=231 border=0>
+      <!--DWLayoutTable-->
+      <tr> 
+        <td width=225 height=26 align = right valign="bottom"> <input name = "Enter" type="submit" class="button2" id="Enter"  value='Войти'> </font> 
+        </td>
+        </tr>
+    </table>
+</FORM>
+</center>
+</BODY>
+</HTML>
